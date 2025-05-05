@@ -1,0 +1,67 @@
+# ─── 操作系统 ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.nfs*
+
+# ─── Python ─────────────────────────────────────────
+# 虚拟环境
+venv/
+.env
+.env.local
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 扩展和库
+*.so
+*.pyd
+*.dll
+
+# 构建产物
+build/
+dist/
+wheels/
+*.egg-info/
+
+# 模型与中间数据
+*.pth
+*.npy
+*.onnx
+checkpoints/
+datasets/
+coco/
+outputs/
+Exp_outputs/
+
+# 序列化缓存
+*.pkl
+*.json
+
+# 日志与覆盖率
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Jupyter
+**/.ipynb_checkpoints/
+
+# ─── 前端／Demo ────────────────────────────────────
+node_modules/
+yarn.lock     # 如果你只是用 npm，可删掉
+package-lock.json
+
+# ─── 编辑器／IDE ───────────────────────────────────
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ─── 文本编辑临时 ─────────────────────────────────
+*.swn
+*.swo
+*.swp
+*~
