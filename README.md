@@ -1,177 +1,126 @@
-## Latest updates -- SAM 2: Segment Anything in Images and Videos
+# STAT3010 Group Project: Segment Anything Experiments
 
-Please check out our new release on [**Segment Anything Model 2 (SAM 2)**](https://github.com/facebookresearch/segment-anything-2).
+**Interactive & Zero-Shot Object Segmentation with Meta’s SAM**
 
-* SAM 2 code: https://github.com/facebookresearch/segment-anything-2
-* SAM 2 demo: https://sam2.metademolab.com/
-* SAM 2 paper: https://arxiv.org/abs/2408.00714
+---
 
- ![SAM 2 architecture](https://github.com/facebookresearch/segment-anything-2/blob/main/assets/model_diagram.png?raw=true)
+## Project Overview
 
-**Segment Anything Model 2 (SAM 2)** is a foundation model towards solving promptable visual segmentation in images and videos. We extend SAM to video by considering images as a video with a single frame. The model design is a simple transformer architecture with streaming memory for real-time video processing. We build a model-in-the-loop data engine, which improves model and data via user interaction, to collect [**our SA-V dataset**](https://ai.meta.com/datasets/segment-anything-video), the largest video segmentation dataset to date. SAM 2 trained on our data provides strong performance across a wide range of tasks and visual domains.
+This project is based on Meta Research’s [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything). It implements and evaluates segmentation on the COCO validation set and custom image collections using:
 
-# Segment Anything
+- **Box → Mask**: generate masks from bounding boxes  
+- **Point Prompts**: segment via foreground/background points  
+- **Box-Refine → Mask**: refine input boxes based on initial masks  
+- **Batch Evaluation**: compute IoU, mAP, Recall and export visualizations  
 
-**[Meta AI Research, FAIR](https://ai.facebook.com/research/)**
+---
 
-[Alexander Kirillov](https://alexander-kirillov.github.io/), [Eric Mintun](https://ericmintun.github.io/), [Nikhila Ravi](https://nikhilaravi.com/), [Hanzi Mao](https://hanzimao.me/), Chloe Rolland, Laura Gustafson, [Tete Xiao](https://tetexiao.com), [Spencer Whitehead](https://www.spencerwhitehead.com/), Alex Berg, Wan-Yen Lo, [Piotr Dollar](https://pdollar.github.io/), [Ross Girshick](https://www.rossgirshick.info/)
+## Dependencies
 
-[[`Paper`](https://ai.facebook.com/research/publications/segment-anything/)] [[`Project`](https://segment-anything.com/)] [[`Demo`](https://segment-anything.com/demo)] [[`Dataset`](https://segment-anything.com/dataset/index.html)] [[`Blog`](https://ai.facebook.com/blog/segment-anything-foundation-model-image-segmentation/)] [[`BibTeX`](#citing-segment-anything)]
+- Python 3.8+  
+- PyTorch 1.13+  
+- torchvision 0.14+  
+- numpy  
+- opencv-python  
+- tqdm  
+- [segment-anything](https://github.com/facebookresearch/segment-anything)
 
-![SAM design](assets/model_diagram.png?raw=true)
-
-The **Segment Anything Model (SAM)** produces high quality object masks from input prompts such as points or boxes, and it can be used to generate masks for all objects in an image. It has been trained on a [dataset](https://segment-anything.com/dataset/index.html) of 11 million images and 1.1 billion masks, and has strong zero-shot performance on a variety of segmentation tasks.
-
-<p float="left">
-  <img src="assets/masks1.png?raw=true" width="37.25%" />
-  <img src="assets/masks2.jpg?raw=true" width="61.5%" /> 
-</p>
+Install with:
+```bash
+pip install -r requirements.txt
+```
 
 ## Installation
 
-The code requires `python>=3.8`, as well as `pytorch>=1.7` and `torchvision>=0.8`. Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies. Installing both PyTorch and TorchVision with CUDA support is strongly recommended.
+1. **Clone repository**  
+   ```bash
+   git clone git@github.com:Lmy0415/STAT3010_gp_final.git
+   cd STAT3010_gp_final
+   
+2. **Create & activate a virtual environment**
 
-Install Segment Anything:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
 
-```
-pip install git+https://github.com/facebookresearch/segment-anything.git
-```
+3. **Download SAM checkpoints**
+   ```bash
+   mkdir -p checkpoints
+   wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth \ -P checkpoints/
 
-or clone the repository locally and install with
+## Usage Examples
 
-```
-git clone git@github.com:facebookresearch/segment-anything.git
-cd segment-anything; pip install -e .
-```
+**Box → Mask**
+   ```bash
+   python vis_point_cases.py \
+  --input_image data/coco/000000123456.jpg \
+  --box 50 30 200 180 \
+  --model_checkpoint checkpoints/sam_vit_l_0b3195.pth
+  ```
 
-The following optional dependencies are necessary for mask post-processing, saving masks in COCO format, the example notebooks, and exporting the model in ONNX format. `jupyter` is also required to run the example notebooks.
+**Point Prompts (5 FG + 5 BG)**
+   ```bash
+   python vis_point_cases.py \
+  --input_image data/coco/000000123456.jpg \
+  --points 100 150 300 250 50 75 350 275 \
+  --labels 1 1 1 1 1 0 0 0 0 0 \
+  --model_checkpoint checkpoints/sam_vit_l_0b3195.pth
+  ```
 
-```
-pip install opencv-python pycocotools matplotlib onnxruntime onnx
-```
+**Batch COCO Evaluation**
+  ```bash
+  python evaluate_coco.py \
+  --ann_file data/coco/annotations/instances_val2017.json \
+  --model_checkpoint checkpoints/sam_vit_l_0b3195.pth \
+  --output_dir Exp_outputs/results/
+  ```
 
-## <a name="GettingStarted"></a>Getting Started
+##Repository Structure
+  ```bash
+    .
+  ├── checkpoints/            # SAM model checkpoints
+  ├── data/                   # COCO validation images & annotations
+  │   └── coco/
+  ├── Exp_outputs/            # Experiment outputs & visualizations (git‑ignored)
+  ├── vis_point_cases.py      # Box & point‑prompt visualization
+  ├── evaluate_coco.py        # COCO batch‑evaluation script
+  ├── utils_plot.py           # Plotting utilities
+  ├── requirements.txt        # Python dependencies
+  └── README.md               # This file
+  ```
 
-First download a [model checkpoint](#model-checkpoints). Then the model can be used in just a few lines to get masks from a given prompt:
+## Experimental Results (Summary)
 
-```
-from segment_anything import SamPredictor, sam_model_registry
-sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
-predictor = SamPredictor(sam)
-predictor.set_image(<your_image>)
-masks, _, _ = predictor.predict(<input_prompts>)
-```
+- **Single-Click (Box)**
+  - Mean IoU: **0.587**
+  - Recall @ 0.5: **0.655**
 
-or generate masks for an entire image:
+- **Multi-Point Prompts (5 FG + 5 BG)**
+  - Mean IoU: **0.620**
 
-```
-from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
-sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
-mask_generator = SamAutomaticMaskGenerator(sam)
-masks = mask_generator.generate(<your_image>)
-```
+- **Box-Refine → Mask**
+  - mAP @ IoU ≥ 0.5: **0.730**
 
-Additionally, masks can be generated for images from the command line:
+> Full charts and tables are available in `Exp_outputs/results/summary.png`.
 
-```
-python scripts/amg.py --checkpoint <path/to/checkpoint> --model-type <model_type> --input <image_or_folder> --output <path/to/output>
-```
 
-See the examples notebooks on [using SAM with prompts](/notebooks/predictor_example.ipynb) and [automatically generating masks](/notebooks/automatic_mask_generator_example.ipynb) for more details.
+## Credits & License
 
-<p float="left">
-  <img src="assets/notebook1.png?raw=true" width="49.1%" />
-  <img src="assets/notebook2.png?raw=true" width="48.9%" />
-</p>
+This project builds on Meta Research’s **Segment Anything Model** (Apache 2.0).
 
-## ONNX Export
-
-SAM's lightweight mask decoder can be exported to ONNX format so that it can be run in any environment that supports ONNX runtime, such as in-browser as showcased in the [demo](https://segment-anything.com/demo). Export the model with
-
-```
-python scripts/export_onnx_model.py --checkpoint <path/to/checkpoint> --model-type <model_type> --output <path/to/output>
-```
-
-See the [example notebook](https://github.com/facebookresearch/segment-anything/blob/main/notebooks/onnx_model_example.ipynb) for details on how to combine image preprocessing via SAM's backbone with mask prediction using the ONNX model. It is recommended to use the latest stable version of PyTorch for ONNX export.
-
-### Web demo
-
-The `demo/` folder has a simple one page React app which shows how to run mask prediction with the exported ONNX model in a web browser with multithreading. Please see [`demo/README.md`](https://github.com/facebookresearch/segment-anything/blob/main/demo/README.md) for more details.
-
-## <a name="Models"></a>Model Checkpoints
-
-Three model versions of the model are available with different backbone sizes. These models can be instantiated by running
-
-```
-from segment_anything import sam_model_registry
-sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
-```
-
-Click the links below to download the checkpoint for the corresponding model type.
-
-- **`default` or `vit_h`: [ViT-H SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth)**
-- `vit_l`: [ViT-L SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth)
-- `vit_b`: [ViT-B SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
-
-## Dataset
-
-See [here](https://ai.facebook.com/datasets/segment-anything/) for an overview of the datastet. The dataset can be downloaded [here](https://ai.facebook.com/datasets/segment-anything-downloads/). By downloading the datasets you agree that you have read and accepted the terms of the SA-1B Dataset Research License.
-
-We save masks per image as a json file. It can be loaded as a dictionary in python in the below format.
-
-```python
-{
-    "image"                 : image_info,
-    "annotations"           : [annotation],
-}
-
-image_info {
-    "image_id"              : int,              # Image id
-    "width"                 : int,              # Image width
-    "height"                : int,              # Image height
-    "file_name"             : str,              # Image filename
-}
-
-annotation {
-    "id"                    : int,              # Annotation id
-    "segmentation"          : dict,             # Mask saved in COCO RLE format.
-    "bbox"                  : [x, y, w, h],     # The box around the mask, in XYWH format
-    "area"                  : int,              # The area in pixels of the mask
-    "predicted_iou"         : float,            # The model's own prediction of the mask's quality
-    "stability_score"       : float,            # A measure of the mask's quality
-    "crop_box"              : [x, y, w, h],     # The crop of the image used to generate the mask, in XYWH format
-    "point_coords"          : [[x, y]],         # The point coordinates input to the model to generate the mask
-}
-```
-
-Image ids can be found in sa_images_ids.txt which can be downloaded using the above [link](https://ai.facebook.com/datasets/segment-anything-downloads/) as well.
-
-To decode a mask in COCO RLE format into binary:
-
-```
-from pycocotools import mask as mask_utils
-mask = mask_utils.decode(annotation["segmentation"])
-```
-
-See [here](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/mask.py) for more instructions to manipulate masks stored in RLE format.
-
-## License
-
-The model is licensed under the [Apache 2.0 license](LICENSE).
-
-## Contributing
-
-See [contributing](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+- **SAM repository**: <https://github.com/facebookresearch/segment-anything>  
+- **SAM paper**: [arXiv:2304.02643](https://arxiv.org/abs/2304.02643)  
+- **License**: see the [LICENSE](LICENSE) file.
 
 ## Contributors
 
-The Segment Anything project was made possible with the help of many contributors (alphabetical):
+- Jiang Qiushi
+- Li Maoyuan
+- Sun Mayuan
 
-Aaron Adcock, Vaibhav Aggarwal, Morteza Behrooz, Cheng-Yang Fu, Ashley Gabriel, Ahuva Goldstand, Allen Goodman, Sumanth Gurram, Jiabo Hu, Somya Jain, Devansh Kukreja, Robert Kuo, Joshua Lane, Yanghao Li, Lilian Luong, Jitendra Malik, Mallika Malhotra, William Ngan, Omkar Parkhi, Nikhil Raina, Dirk Rowe, Neil Sejoor, Vanessa Stark, Bala Varadarajan, Bram Wasti, Zachary Winstrom
 
-## Citing Segment Anything
-
-If you use SAM or SA-1B in your research, please use the following BibTeX entry.
+## Citation
 
 ```
 @article{kirillov2023segany,
